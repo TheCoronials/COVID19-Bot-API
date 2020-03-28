@@ -335,24 +335,24 @@ menus['main'] = {
     'intro': "I'm TheCoronials bot for COVID-19 Hackathon!",
     'options': [
         {
-            'friendly': 'My Profile',
+            'friendly': 'Individual',
             'dest': {
-                'type': DEST_TYPE_TASK,
-                'value': 'profile_menu'
+                'type': DEST_TYPE_MENU,
+                'value': 'individual'
             },
         },
         {
-            'friendly': 'Social Grants',
-            'dest': {
-                'type': DEST_TYPE_TASK,
-                'value': 'profile_menu'
-            },
-        },
-        {
-            'friendly': 'Business Menu',
+            'friendly': 'Business',
             'dest': {
                 'type': DEST_TYPE_MENU,
                 'value': 'business'
+            },
+        },
+        {
+            'friendly': 'Help',
+            'dest': {
+                'type': DEST_TYPE_TASK,
+                'value': 'help'
             },
         },
     ]
@@ -373,6 +373,95 @@ menus['business'] = {
             'dest': {
                 'type': DEST_TYPE_TASK,
                 'value': 'global_back'
+            },
+        },
+    ]
+}
+
+menus['individual'] = {
+    'intro': "This is the Individual Menu",
+    'options': [
+        {
+            'friendly': 'My Social Grants',
+            'dest': {
+                'type': DEST_TYPE_TASK,
+                'value': 'business_loans'
+            },
+        },
+        {
+            'friendly': 'All Social Grants',
+            'dest': {
+                'type': DEST_TYPE_MENU,
+                'value': 'all_grants'
+            },
+        },
+        {
+            'friendly': 'My Profile',
+            'dest': {
+                'type': DEST_TYPE_TASK,
+                'value': 'profile_menu'
+            },
+        },
+    ]
+}
+
+menus['all_grants'] = {
+    'intro': "List of all Grants",
+    'options': [
+        {
+            'friendly': 'Child Dependency Grant',
+            'dest': {
+                'type': DEST_TYPE_TASK,
+                'value': 'child_support_grant'
+            },
+        },
+        {
+            'friendly': 'Child Support Grant',
+            'dest': {
+                'type': DEST_TYPE_TASK,
+                'value': 'child_support_grant'
+            },
+        },
+        {
+            'friendly': 'Disability Grant',
+            'dest': {
+                'type': DEST_TYPE_TASK,
+                'value': 'child_support_grant'
+            },
+        },
+        {
+            'friendly': 'Foster Child Grant',
+            'dest': {
+                'type': DEST_TYPE_TASK,
+                'value': 'child_support_grant'
+            },
+        },
+        {
+            'friendly': 'Grant-in-aid',
+            'dest': {
+                'type': DEST_TYPE_TASK,
+                'value': 'child_support_grant'
+            },
+        },
+        {
+            'friendly': 'Old Persons Grant',
+            'dest': {
+                'type': DEST_TYPE_TASK,
+                'value': 'child_support_grant'
+            },
+        },
+        {
+            'friendly': 'Social Relief or Distress',
+            'dest': {
+                'type': DEST_TYPE_TASK,
+                'value': 'child_support_grant'
+            },
+        },
+        {
+            'friendly': 'War Veterans Grant',
+            'dest': {
+                'type': DEST_TYPE_TASK,
+                'value': 'child_support_grant'
             },
         },
     ]
