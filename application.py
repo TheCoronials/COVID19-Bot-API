@@ -139,7 +139,7 @@ def get_wa_images():
 
 # User management
 @application.route('/api/v1/user/<string:user_identifier>', methods=['GET'])
-def get_user_by_identifier(user_identifier):
+def get_user_by_identifier_api(user_identifier):
     if user_identifier is None:
         response = jsonify({
             'message': 'Missing request parameter: "user_identifier"'
@@ -316,6 +316,49 @@ def add_bank_details():
     })
     return response, 201
 
+# https://c640a319.ngrok.io/api/v1/coronials/init
+
+@application.route('/api/v1/coronials/init', methods=['GET', 'POST'])
+def get_init():
+    payload = request.form
+    userId = payload['UserIdentifier']
+    print('user init ' + userId)
+
+    try:
+        user = get_user_by_user_identifier(userId)
+        response = "Hello {}, I'm TheCoronials bot for COVID-19 Hackathon\n1) menu\n2) options\n3) profile menue".format(user.name)
+        return build_twilio_say(response)
+    except NoResultFound:
+        print('Not registered yet...')
+        return build_twilio_task_redirect('register')
+
+
+@application.route('/api/v1/coronials/create-user', methods=['GET', 'POST'])
+def create_user_twilio():
+    payload = request.form
+    userId = payload['UserIdentifier']
+    memory = json.loads(payload['Memory'])
+    answers = memory['twilio']['collected_data']['register_user']['answers']
+
+    name = answers['name']['answer']
+    id_number = answers['id_number']['answer']
+
+    bank = answers['bank_name']['answer']
+    bank_acc_no = answers['bank_acc_no']['answer']
+    bank_branch_no = answers['bank_branch_code']['answer']
+
+    new_bank = BankAccount(bank=bank, accno=bank_acc_no, branch=bank_branch_no)
+    db.session.add(new_bank)
+
+    new_user = User(user_identifier=userId, name=name, id_number=id_number)
+    new_user.bankaccounts.append(new_bank)
+
+    db.session.add(new_user)
+    db.session.commit()
+
+    # response = "Hello {}, thanks for registering :D".format(name)
+    return build_twilio_task_redirect('greeting')
+
 
 @application.route('/api/v1/coronials/hello', methods=['GET', 'POST'])
 def get_hello():
@@ -323,10 +366,15 @@ def get_hello():
     return build_twilio_say(response)
 
 
+@application.route('/api/v1/coronials/image', methods=['GET', 'POST'])
+def get_image():
+    response = "Hello, I think you just sent me an image.."
+    return build_twilio_say(response)
+
+
 @application.route('/api/v1/coronials/age', methods=['GET', 'POST'])
 def get_age():
     print('methods')
-    print(request.method['GET'])
     form = request.form
     age = int(form['Field_user_age_Value'])
     age += age
@@ -397,6 +445,10 @@ def send_sms(body):
         sms = client.messages.create(to="<to-nohere>", from_="<from-nohere>", body=body)
     else:
         print(">>>>SMS<<<<\n{}\n>>>>>SMS<<<<<<".format(body))
+
+
+def build_twilio_task_redirect(task):
+    return jsonify({"actions": [{"redirect": "task://{}".format(task)}]})
 
 
 def build_twilio_say(say_text):
