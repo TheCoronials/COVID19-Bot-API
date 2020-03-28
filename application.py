@@ -1,10 +1,21 @@
 import requests
 from flask import Flask, request, abort, app, jsonify, json
+from sqlalchemy.orm.exc import NoResultFound
 from twilio.rest import Client
+from flask_sqlalchemy import SQLAlchemy
+from repo.database_setup import User, BankAccount, Base
 import random
 
 # EB looks for an 'application' callable by default.
+from repo.populate import insert_seed_data
+
 application = Flask(__name__)
+
+application.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///coronials-collection.db'
+application.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+application.config['SQLALCHEMY_ECHO'] = True
+
+db = SQLAlchemy(application)
 
 SETTINGS_ENABLE_SMS = True
 NEW_LINE = '\r\n'
@@ -127,6 +138,50 @@ def get_wa_images():
 # Put your stuff here
 
 # User management
+
+@application.route('/api/v1/user', methods=['POST'])
+def create_base_user():
+    data = request.json
+
+    if 'user_identifier' in data:
+        user_identifier = data['user_identifier']
+    else:
+        return jsonify({
+            'status': 400,
+            'message': 'Missing request parameter: "user_identifier"'
+        })
+
+    if 'name' in data:
+        name = data['name']
+    else:
+        return jsonify({
+            'status': 400,
+            'message': 'Missing request parameter: "name"'
+        })
+
+    # CHECK IF USER ALREADY REGISTERED
+    try:
+        db.session.query(User).filter_by(user_identifier=user_identifier).one()
+        return jsonify({
+            'status': 400,
+            'message': 'User already registered'
+        })
+    except NoResultFound:
+        pass
+
+    # CREATE USER
+    user = User()
+    user.name = name
+    user.user_identifier = user_identifier
+
+    db.session.add(user)
+    db.session.commit()
+
+    response = jsonify({
+        'id': user.id
+    })
+
+    return response, 201
 
 
 @application.route('/api/v1/coronials/hello', methods=['GET', 'POST'])
@@ -273,9 +328,18 @@ application.add_url_rule('/', 'index', (lambda: header_text +
 application.add_url_rule('/<username>', 'hello', (lambda username:
                                                   header_text + say_hello(username) + home_link + footer_text))
 
+
+def create_database():
+    with application.app_context():
+        db.create_all()
+        insert_seed_data(db)
+        db.session.commit()
+
+
 # run the app.
 if __name__ == "__main__":
     # Setting debug to True enables debug output. This line should be
     # removed before deploying a production app.
     application.debug = True
+    create_database()
     application.run(port=5001, debug=False)
