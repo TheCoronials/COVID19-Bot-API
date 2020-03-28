@@ -13,7 +13,7 @@ pip install -r requirements.txt
 The Creation of the in memory database as well as the seeding of test data is currently tied into the app’s bootstrap code. 
 This means that simply running the main python file will setup and seed the in memory database. 
 
-## Manual Database Setup and Data Seeding
+## Manual Database Setup
 
 The Coronials project uses a sqlite database with the URI of 'sqlite:///coronials-collection.db'
 
@@ -29,13 +29,4 @@ Run the database_setup script to create the database and tables from the defined
 
 ```
 python database_setup.py
-```
-
-### Seeding the database with test data
-
-In order to seed the database with test data, you will need to run the populate script which is also located in the repo directory:
-
-
-```
-python populate.py
 ```
