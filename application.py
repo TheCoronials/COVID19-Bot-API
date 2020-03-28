@@ -155,7 +155,7 @@ def get_user_by_identifier(user_identifier):
         return response, 404
 
     response = jsonify({
-        'account_details': user.serialize()
+        'user': user.serialize()
     })
     return response, 200
 
@@ -203,6 +203,45 @@ def create_base_user():
     })
 
     return response, 201
+
+
+@application.route('/api/v1/user/id_number', methods=['POST'])
+def set_user_id_number():
+    data = request.json
+
+    if 'user_identifier' in data:
+        user_identifier = data['user_identifier']
+    else:
+        response = jsonify({
+            'message': 'Missing request parameter: "user_identifier"'
+        })
+        return response, 400
+
+    if 'id_number' in data:
+        id_number = data['id_number']
+    else:
+        response = jsonify({
+            'message': 'Missing request parameter: "name"'
+        })
+        return response, 400
+
+    try:
+        user = get_user_by_user_identifier(user_identifier)
+    except NoResultFound:
+        response = jsonify({
+            'message': 'No user exists'
+        })
+        return response, 404
+
+    user.id_number = id_number
+
+    db.session.add(user)
+    db.session.commit()
+
+    response = jsonify({
+        'user': user.serialize()
+    })
+    return response, 200
 
 
 @application.route('/api/v1/coronials/hello', methods=['GET', 'POST'])
