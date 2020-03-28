@@ -211,6 +211,10 @@ def send_sms(body):
         print(">>>>SMS<<<<\n{}\n>>>>>SMS<<<<<<".format(body))
 
 
+def build_twilio_task_redirect(task):
+    return jsonify({"actions": [{"redirect": "task://{}".format(task)}]})
+
+
 def build_twilio_say(say_text):
     return jsonify({"actions": [{"say": say_text}]})
 
