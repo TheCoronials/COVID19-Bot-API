@@ -22,8 +22,7 @@ class User(Base):
         return {
             'user_identifier': self.user_identifier,
             'name': self.name,
-            'id_number': self.id_number,
-            'bankaccounts': self.bankaccounts
+            'id_number': self.id_number
         }
 
 
