@@ -1,10 +1,21 @@
 import requests
 from flask import Flask, request, abort, app, jsonify, json
+from sqlalchemy.orm.exc import NoResultFound
 from twilio.rest import Client
+from flask_sqlalchemy import SQLAlchemy
+from repo.database_setup import User, BankAccount, Base
 import random
 
 # EB looks for an 'application' callable by default.
+from repo.populate import insert_seed_data
+
 application = Flask(__name__)
+
+application.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///coronials-collection.db'
+application.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+application.config['SQLALCHEMY_ECHO'] = True
+
+db = SQLAlchemy(application)
 
 SETTINGS_ENABLE_SMS = True
 NEW_LINE = '\r\n'
@@ -127,6 +138,110 @@ def get_wa_images():
 # Put your stuff here
 
 # User management
+@application.route('/api/v1/user/<string:user_identifier>', methods=['GET'])
+def get_user_by_identifier(user_identifier):
+    if user_identifier is None:
+        response = jsonify({
+            'message': 'Missing request parameter: "user_identifier"'
+        })
+        return response, 400
+
+    try:
+        user = get_user_by_user_identifier(user_identifier)
+    except NoResultFound:
+        response = jsonify({
+            'message': 'No user exists'
+        })
+        return response, 404
+
+    response = jsonify({
+        'user': user.serialize()
+    })
+    return response, 200
+
+
+@application.route('/api/v1/user', methods=['POST'])
+def create_base_user():
+    data = request.json
+
+    if 'user_identifier' in data:
+        user_identifier = data['user_identifier']
+    else:
+        response = jsonify({
+            'message': 'Missing request parameter: "user_identifier"'
+        })
+        return response, 400
+
+    if 'name' in data:
+        name = data['name']
+    else:
+        response = jsonify({
+            'message': 'Missing request parameter: "name"'
+        })
+        return response, 400
+
+    # CHECK IF USER ALREADY REGISTERED
+    try:
+        get_user_by_user_identifier(user_identifier)
+        response = jsonify({
+            'message': 'User already registered'
+        })
+        return response, 400
+    except NoResultFound:
+        pass
+
+    # CREATE USER
+    user = User()
+    user.name = name
+    user.user_identifier = user_identifier
+
+    db.session.add(user)
+    db.session.commit()
+
+    response = jsonify({
+        'id': user.id
+    })
+
+    return response, 201
+
+
+@application.route('/api/v1/user/id_number', methods=['POST'])
+def set_user_id_number():
+    data = request.json
+
+    if 'user_identifier' in data:
+        user_identifier = data['user_identifier']
+    else:
+        response = jsonify({
+            'message': 'Missing request parameter: "user_identifier"'
+        })
+        return response, 400
+
+    if 'id_number' in data:
+        id_number = data['id_number']
+    else:
+        response = jsonify({
+            'message': 'Missing request parameter: "name"'
+        })
+        return response, 400
+
+    try:
+        user = get_user_by_user_identifier(user_identifier)
+    except NoResultFound:
+        response = jsonify({
+            'message': 'No user exists'
+        })
+        return response, 404
+
+    user.id_number = id_number
+
+    db.session.add(user)
+    db.session.commit()
+
+    response = jsonify({
+        'user': user.serialize()
+    })
+    return response, 200
 
 
 @application.route('/api/v1/coronials/hello', methods=['GET', 'POST'])
@@ -277,9 +392,22 @@ application.add_url_rule('/', 'index', (lambda: header_text +
 application.add_url_rule('/<username>', 'hello', (lambda username:
                                                   header_text + say_hello(username) + home_link + footer_text))
 
+
+def get_user_by_user_identifier(user_identifier):
+    return db.session.query(User).filter_by(user_identifier=user_identifier).one()
+
+
+def create_database():
+    with application.app_context():
+        db.create_all()
+        insert_seed_data(db)
+        db.session.commit()
+
+
 # run the app.
 if __name__ == "__main__":
     # Setting debug to True enables debug output. This line should be
     # removed before deploying a production app.
     application.debug = True
+    create_database()
     application.run(port=5001, debug=False)
