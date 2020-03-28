@@ -123,6 +123,12 @@ def get_wa_images():
     return build_twilio_say(images)
 
 
+# @Richard TODO User management
+# Put your stuff here
+
+# User management
+
+
 @application.route('/api/v1/coronials/hello', methods=['GET', 'POST'])
 def get_hello():
     response = "Hello, this is the backend on AWS saying WORLD"
