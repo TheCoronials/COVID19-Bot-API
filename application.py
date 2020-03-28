@@ -123,6 +123,30 @@ def get_wa_images():
     return build_twilio_say(images)
 
 
+# @Richard TODO User management
+# Put your stuff here
+
+# User management
+
+
+@application.route('/api/v1/coronials/hello', methods=['GET', 'POST'])
+def get_hello():
+    response = "Hello, this is the backend on AWS saying WORLD"
+    return build_twilio_say(response)
+
+
+@application.route('/api/v1/coronials/age', methods=['GET', 'POST'])
+def get_age():
+    print('methods')
+    print(request.method['GET'])
+    form = request.form
+    age = int(form['Field_user_age_Value'])
+    age += age
+
+    response = "Double your age is {}".format(age)
+
+    return build_twilio_say(response)
+
 @application.route('/api/v1/deployer/labels', methods=['GET', 'POST'])
 def get_labels():
     field = 'CurrentInput'
@@ -254,4 +278,4 @@ if __name__ == "__main__":
     # Setting debug to True enables debug output. This line should be
     # removed before deploying a production app.
     application.debug = True
-    application.run(port=5001)
+    application.run(port=5001, debug=False)
