@@ -244,6 +244,79 @@ def set_user_id_number():
     return response, 200
 
 
+@application.route('/api/v1/user/<string:user_identifier>/bank_account', methods=['GET'])
+def get_bank_accounts(user_identifier):
+    if user_identifier is None:
+        response = jsonify({
+            'message': 'Missing request parameter: "user_identifier"'
+        })
+        return response, 400
+
+    try:
+        user = get_user_by_user_identifier(user_identifier)
+    except NoResultFound:
+        response = jsonify({
+            'message': 'No user exists'
+        })
+        return response, 404
+
+    bank_accounts = user.bankaccounts
+
+    response = jsonify({
+        'bank_accounts': [bankacc.serialize() for bankacc in bank_accounts]
+    })
+    return response, 200
+
+
+@application.route('/api/v1/user/bank_account', methods=['POST'])
+def add_bank_details():
+    data = request.json
+
+    if 'user_identifier' in data:
+        user_identifier = data['user_identifier']
+    else:
+        return create_missing_identifier_response('user_identifier'), 400
+
+    if 'bank' in data:
+        bank = data['bank']
+    else:
+        return create_missing_identifier_response('bank'), 400
+
+    if 'accno' in data:
+        accno = data['accno']
+    else:
+        return create_missing_identifier_response('accno'), 400
+
+    if 'branch' in data:
+        branch = data['branch']
+    else:
+        branch = None
+
+    try:
+        user = get_user_by_user_identifier(user_identifier)
+    except NoResultFound:
+        response = jsonify({
+            'message': 'No user exists'
+        })
+        return response, 404
+
+    bankacc = BankAccount()
+    bankacc.bank = bank
+    bankacc.accno = accno
+    bankacc.branch = branch
+
+    user.bankaccounts.append(bankacc)
+
+    db.session.add(user)
+    db.session.add(bankacc)
+    db.session.commit()
+
+    response = jsonify({
+        'id': bankacc.id
+    })
+    return response, 201
+
+
 @application.route('/api/v1/coronials/hello', methods=['GET', 'POST'])
 def get_hello():
     response = "Hello, this is the backend on AWS saying WORLD"
@@ -391,6 +464,13 @@ application.add_url_rule('/<username>', 'hello', (lambda username:
 
 def get_user_by_user_identifier(user_identifier):
     return db.session.query(User).filter_by(user_identifier=user_identifier).one()
+
+
+def create_missing_identifier_response(field):
+    response = jsonify({
+        'message': 'Missing request parameter: "{}"'.format(field)
+    })
+    return response
 
 
 def create_database():
