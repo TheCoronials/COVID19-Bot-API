@@ -18,6 +18,14 @@ class User(Base):
     bankaccounts = relationship("BankAccount")
     reg_date = Column(DateTime, default=datetime.datetime.utcnow)
 
+    def serialize(self):
+        return {
+            'user_identifier': self.user_identifier,
+            'name': self.name,
+            'id_number': self.id_number,
+            'bankaccounts': self.bankaccounts
+        }
+
 
 class BankAccount(Base):
 
@@ -29,6 +37,13 @@ class BankAccount(Base):
     accno = Column(String(15))
     branch = Column(String(6))
     reg_date = Column(DateTime, default=datetime.datetime.utcnow)
+
+    def serialize(self):
+        return {
+            'bank': self.bank,
+            'accno': self.accno,
+            'branch': self.branch
+        }
 
 
 # Creates a create_engine instance at the bottom of the file

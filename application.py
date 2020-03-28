@@ -138,6 +138,27 @@ def get_wa_images():
 # Put your stuff here
 
 # User management
+@application.route('/api/v1/user/<string:user_identifier>', methods=['GET'])
+def get_user_by_identifier(user_identifier):
+    if user_identifier is None:
+        response = jsonify({
+            'message': 'Missing request parameter: "user_identifier"'
+        })
+        return response, 400
+
+    try:
+        user = get_user_by_user_identifier(user_identifier)
+    except NoResultFound:
+        response = jsonify({
+            'message': 'No user exists'
+        })
+        return response, 404
+
+    response = jsonify({
+        'account_details': user.serialize()
+    })
+    return response, 200
+
 
 @application.route('/api/v1/user', methods=['POST'])
 def create_base_user():
@@ -146,26 +167,26 @@ def create_base_user():
     if 'user_identifier' in data:
         user_identifier = data['user_identifier']
     else:
-        return jsonify({
-            'status': 400,
+        response = jsonify({
             'message': 'Missing request parameter: "user_identifier"'
         })
+        return response, 400
 
     if 'name' in data:
         name = data['name']
     else:
-        return jsonify({
-            'status': 400,
+        response = jsonify({
             'message': 'Missing request parameter: "name"'
         })
+        return response, 400
 
     # CHECK IF USER ALREADY REGISTERED
     try:
-        db.session.query(User).filter_by(user_identifier=user_identifier).one()
-        return jsonify({
-            'status': 400,
+        get_user_by_user_identifier(user_identifier)
+        response = jsonify({
             'message': 'User already registered'
         })
+        return response, 400
     except NoResultFound:
         pass
 
@@ -327,6 +348,10 @@ application.add_url_rule('/', 'index', (lambda: header_text +
 # URL.
 application.add_url_rule('/<username>', 'hello', (lambda username:
                                                   header_text + say_hello(username) + home_link + footer_text))
+
+
+def get_user_by_user_identifier(user_identifier):
+    return db.session.query(User).filter_by(user_identifier=user_identifier).one()
 
 
 def create_database():
