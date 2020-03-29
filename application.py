@@ -582,7 +582,7 @@ def greeting():
     return build_say_and_task_redirect(response, 'introduction')
 
 
-@application.route('/api/v1/user/profile', methods=['GET'])
+@application.route('/api/v1/user/profile', methods=['GET', 'POST'])
 def get_user_profile():
     payload = request.form
     userId = payload['UserIdentifier']
