@@ -190,7 +190,7 @@ def set_user_id_number():
         'user': user.serialize()
     })
     return response, 200
-
+	
 
 @application.route('/api/v1/user/<string:user_identifier>/bank_account', methods=['GET'])
 def get_bank_accounts(user_identifier):
@@ -582,6 +582,23 @@ def greeting():
     return build_say_and_task_redirect(response, 'introduction')
 
 
+@application.route('/api/v1/user/profile', methods=['GET'])
+def get_user_profile():
+    payload = request.form
+    userId = payload['UserIdentifier']
+		
+    try:
+        user = get_user_by_user_identifier(userId)
+    except NoResultFound:
+        response = jsonify({
+            'message': 'No user exists'
+        })
+        return response, 404
+		
+    response = "My Profile:\n\n ID: {id_num}\n Name: {name}\n\n0) Back".format(id_num = user.id_number, name = user.name)
+    return build_twilio_say(response)
+	
+	
 @application.route('/api/v1/menu/global-back', methods=['GET', 'POST'])
 def gp_back():
     payload = request.form
