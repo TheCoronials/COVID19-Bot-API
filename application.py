@@ -467,6 +467,25 @@ def get_init():
         return build_twilio_task_redirect('register')
 
 
+@application.route('/api/v1/coronials/greeting', methods=['GET', 'POST'])
+def greeting():
+    payload = request.form
+    userId = payload['UserIdentifier']
+
+    response = "Heyyyyy"
+
+    try:
+        user = get_user_by_user_identifier(userId)
+        response += " {}, ".format(user.name)
+    except NoResultFound:
+        response += " and "
+        print("he who shall be nameless")
+
+    response += "welcome to Digisist 🤖!"
+
+    return build_twilio_say(response)
+
+
 @application.route('/api/v1/menu/global-back', methods=['GET', 'POST'])
 def gp_back():
     response = "Hmmm.. so you wanna go back? Still need to think about that.."
