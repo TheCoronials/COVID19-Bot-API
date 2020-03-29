@@ -212,6 +212,7 @@ def add_bank_details():
     })
     return response, 201
 
+back_menu_store = {}
 
 menus = {}
 
@@ -489,15 +490,16 @@ def greeting():
 @application.route('/api/v1/menu/global-back', methods=['GET', 'POST'])
 def gp_back():
     response = "Hmmm.. so you wanna go back? Still need to think about that.."
-
-    # payload = request.form
-    # menu_store = json.loads(payload['Memory'])['menu']
-    # menu_stack = menu_store['stack']
-    # previous_menu = menu_stack.pop()
-    # print('GLOBAL BACK | PREVIOUS MENU -> ' + previous_menu)
-    # return build_twilio_collect_from_menu(previous_menu, menu_stack, request, None)
-
-    return build_twilio_say(response)
+    payload = request.form
+    print("BACK STORE")
+    print(back_menu_store)
+    try:
+        back_menu = back_menu_store[payload['UserIdentifier']]
+        return build_twilio_collect_from_menu(back_menu, [back_menu], request)
+    except KeyError:
+        print('no back menu.. oh well')
+        starting_menu = 'main'
+        return build_twilio_collect_from_menu(starting_menu, [starting_menu], request)
 
 
 @application.route('/api/v1/menu/callback', methods=['GET', 'POST'])
@@ -510,9 +512,14 @@ def callback_all():
     selection = int(user_response)
 
     if selection == 0:
-        previous_menu = menu_stack.pop()
-        print('PREVIOUS MENU -> ' + previous_menu)
-        return build_twilio_collect_from_menu(previous_menu, menu_stack, request)
+        try:
+            previous_menu = menu_stack.pop()
+            print('PREVIOUS MENU -> ' + previous_menu)
+            return build_twilio_collect_from_menu(previous_menu, menu_stack, request)
+        except IndexError:
+            print('no back menu.. cause stack is popped.. oh well')
+            starting_menu = 'main'
+            return build_twilio_collect_from_menu(starting_menu, [starting_menu], request)
 
     if selection == 99:
         # TODO may need to make this a menu..
@@ -521,6 +528,7 @@ def callback_all():
     current_menu = menu_store['current']
     print('CURRENT MENU -> ' + current_menu)
     dest = get_dest_for_selection(current_menu, selection)
+    back_menu_store[payload['UserIdentifier']] = current_menu
 
     if dest['type'] == DEST_TYPE_TASK:
         return build_twilio_task_redirect(dest['value'])
@@ -629,10 +637,20 @@ def build_twilio_api_redirect(path):
 
 def build_twilio_task_redirect(task):
     return jsonify({
-        "actions": [{
-            "redirect": "task://{}".format(task)
-        }]
-    })
+        "actions": [
+            {
+                "remember": {
+                    "menu": {
+                        "stack": [
+                            "main"
+                        ]
+                    },
+                }
+            },
+            {
+                "redirect": "task://{}".format(task)
+            }
+        ]})
 
 
 def build_twilio_task_redirect_with_remember_user(task, username):
