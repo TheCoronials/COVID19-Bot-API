@@ -369,24 +369,14 @@ menus['business'] = {
             },
         },
         {
-            'friendly': 'Global Back',
+            'friendly': 'Donation school feeding program',
             'dest': {
                 'type': DEST_TYPE_TASK,
-                'value': 'global_back'
+                'value': 'donation_school_feeding_program'
             },
         },
     ]
 }
-
-
-def determine_menu_redirect(menu, selection):
-    dest = get_dest_for_selection(menu, selection)
-    if dest['type'] == DEST_TYPE_TASK:
-        return build_twilio_task_redirect(dest['value'])
-
-# TODO get name here
-    if dest['type'] == DEST_TYPE_MENU:
-        return build_twilio_collect_from_menu(dest['value'], 'BOB')
 
 
 def get_dest_for_selection(menu, selection):
@@ -400,7 +390,8 @@ def get_menu(menu, user_name):
     for i, item in enumerate(menus[menu]['options'], start=1):
         response += "{}) {}\n".format(str(i), item['friendly'])
 
-    response += '\n\n'
+    response += '\nh) Help\n' \
+                '0) Back\n'
 
     return response
 
@@ -410,30 +401,57 @@ def get_init():
     payload = request.form
     userId = payload['UserIdentifier']
     print('user init ' + userId)
-    # print('PROFILE? ' + menus['main']['options'][1])
+    starting_menu = 'main'
 
     try:
         user = get_user_by_user_identifier(userId)
-        return build_twilio_collect_from_menu('main', user.name)
+        stack = [starting_menu]
+        return build_twilio_collect_from_menu(starting_menu, stack, user.name)
     except NoResultFound:
         print('Not registered yet...')
         return build_twilio_task_redirect('register')
 
 
-@application.route('/api/v1/menu/main-callback', methods=['GET', 'POST'])
-def callback_main():
-    # TODO may break if they don't put 1 as answer.. handle..
-    selection = int(get_menu_response(request))
-    response = determine_menu_redirect('main', selection)
-    return response
+@application.route('/api/v1/menu/global-back', methods=['GET', 'POST'])
+def gp_back():
+    response = "Hmmm.. so you wanna go back? Still need to think about that.."
+    return build_twilio_say(response)
 
 
-@application.route('/api/v1/menu/business-callback', methods=['GET', 'POST'])
-def callback_business():
+@application.route('/api/v1/menu/callback', methods=['GET', 'POST'])
+def callback_all():
+    payload = request.form
+    menu_store = json.loads(payload['Memory'])['menu']
+
+    current_menu = menu_store['current']
+    menu_stack = menu_store['stack']
+    # previous_menu = menu_store['stack'].pop()
+
+    print('CURRENT MENU -> ' + current_menu)
+
+    # use this for text later
+    user_response = get_menu_response(request)
+
+    #
+    # if str(user_response).lower() == 'b':
+    #     print('about to go here ' + previous_menu)
+
     # TODO may break if they don't put 1 as answer.. handle..
-    selection = int(get_menu_response(request))
-    response = determine_menu_redirect('business', selection)
-    return response
+    selection = int(user_response)
+    if selection == 0:
+        previous_menu = menu_stack.pop()
+        print('PREVIOUS MENU -> ' + previous_menu)
+        return build_twilio_collect_from_menu(previous_menu, menu_stack, 'BOB')
+
+    dest = get_dest_for_selection(current_menu, selection)
+
+    if dest['type'] == DEST_TYPE_TASK:
+        return build_twilio_task_redirect(dest['value'])
+
+    # TODO get name here AKA BOB
+    if dest['type'] == DEST_TYPE_MENU:
+        menu_stack.append(current_menu)
+        return build_twilio_collect_from_menu(dest['value'], menu_stack, 'BOB')
 
 
 def get_menu_response(request):
@@ -471,11 +489,11 @@ def create_user_twilio():
     return build_twilio_task_redirect('greeting')
 
 
-@application.route('/api/v1/coronials/hello', methods=['GET', 'POST'])
-def get_hello():
-    question = "Hello, this is the backend on AWS saying WORLD"
-    callback = "sdome url goes here WORLD"
-    return build_twilio_collect(question, callback)
+# @application.route('/api/v1/coronials/hello', methods=['GET', 'POST'])
+# def get_hello():
+#     question = "Hello, this is the backend on AWS saying WORLD"
+#     callback = "sdome url goes here WORLD"
+#     return build_twilio_collect(question, callback)
 
 
 @application.route('/api/v1/coronials/image', methods=['GET', 'POST'])
@@ -559,9 +577,9 @@ def send_sms(body):
         print(">>>>SMS<<<<\n{}\n>>>>>SMS<<<<<<".format(body))
 
 
-def build_twilio_collect_from_menu(menu, user_name):
+def build_twilio_collect_from_menu(menu, stack, user_name):
     menu_response = get_menu(menu, user_name)
-    redirect_path = get_full_api_path("/api/v1/menu/{}-callback".format(menu))
+    redirect_path = get_full_api_path("/api/v1/menu/callback")
 
     return jsonify({
         "actions": [
@@ -572,38 +590,25 @@ def build_twilio_collect_from_menu(menu, user_name):
                         {
                             "question": menu_response,
                             "name": "menu_selection",
-                            "type": "Twilio.NUMBER"
+                            "type": "Twilio.ALPHANUMERIC"
                         }
                     ],
                     "on_complete": {
                         "redirect": redirect_path
                     }
                 }
-            }
-        ]
-    })
-
-
-def build_twilio_collect(question, path):
-    return jsonify({
-        "actions": [
+            },
             {
-                "collect": {
-                    "name": "collect_menu_selection",
-                    "questions": [
-                        {
-                            "question": question,
-                            "name": "menu_selection",
-                            "type": "Twilio.NUMBER"
-                        }
-                    ],
-                    "on_complete": {
-                        "redirect": get_full_api_path(path)
-                    }
+                "remember": {
+                    "menu": {
+                        "current": menu,
+                        "stack": stack
+                    },
                 }
-            }
+            },
         ]
     })
+
 
 
 def get_full_api_path(path):
@@ -615,7 +620,11 @@ def build_twilio_api_redirect(path):
 
 
 def build_twilio_task_redirect(task):
-    return jsonify({"actions": [{"redirect": "task://{}".format(task)}]})
+    return jsonify({
+        "actions": [{
+            "redirect": "task://{}".format(task)
+        }]
+    })
 
 
 def build_twilio_say(say_text):
