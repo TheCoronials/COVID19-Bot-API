@@ -222,17 +222,17 @@ menus = {}
 # -> To link to a task defined in twilio, use DEST_TYPE_TASK type and set value to task as defined in twilio
 
 menus['main'] = {
-    'intro': "I'm TheCoronials bot for COVID-19 Hackathon!",
+    'intro': "I'm The Coronials bot for the COVID-19 Hackathon! Please select an option below. Are you:",
     'options': [
         {
-            'friendly': 'Individual',
+            'friendly': 'An individual',
             'dest': {
                 'type': DEST_TYPE_MENU,
                 'value': 'individual'
             },
         },
         {
-            'friendly': 'Business',
+            'friendly': 'A business',
             'dest': {
                 'type': DEST_TYPE_MENU,
                 'value': 'business'
@@ -249,20 +249,55 @@ menus['main'] = {
 }
 
 menus['business'] = {
-    'intro': "This is the Business Menu",
+    'intro': "We have gathered all the business information that may be applicable to you. Please select the category that you would like to know more about:",
     'options': [
+        {
+            'friendly': 'Employee Tax Incentive',
+            'dest': {
+                'type': DEST_TYPE_TASK,
+                'value': 'business_employee_tax_incentive'
+            },
+        },
+        {
+            'friendly': 'Compensation Fund',
+            'dest': {
+                'type': DEST_TYPE_TASK,
+                'value': 'business_compensation_fund'
+            },
+        },
+        {
+            'friendly': 'Temporary Employee Relief Scheme',
+            'dest': {
+                'type': DEST_TYPE_TASK,
+                'value': 'business_temporary_employee_relief_scheme'
+            },
+        },
         {
             'friendly': 'Business Loans',
             'dest': {
                 'type': DEST_TYPE_TASK,
-                'value': 'business_loans'
+                'value': 'business_temporary_employee_relief_scheme'
             },
         },
         {
-            'friendly': 'Donation school feeding program',
+            'friendly': 'Firms under R50 million turnover',
             'dest': {
                 'type': DEST_TYPE_TASK,
-                'value': 'donation_school_feeding_program'
+                'value': 'business_firms_under_r50_million_turnover'
+            },
+        },
+        {
+            'friendly': 'Tourism sector SMEs',
+            'dest': {
+                'type': DEST_TYPE_TASK,
+                'value': 'business_temporary_employee_relief_scheme'
+            },
+        },
+        {
+            'friendly': 'Bank specific programs',
+            'dest': {
+                'type': DEST_TYPE_TASK,
+                'value': 'bank_specific_programs'
             },
         },
     ]
@@ -288,8 +323,8 @@ menus['individual'] = {
         {
             'friendly': 'My Profile',
             'dest': {
-                'type': DEST_TYPE_TASK,
-                'value': 'profile_menu'
+                'type': DEST_TYPE_MENU,
+                'value': 'profile'
             },
         },
     ]
@@ -302,7 +337,7 @@ menus['all_grants'] = {
             'friendly': 'Child Dependency Grant',
             'dest': {
                 'type': DEST_TYPE_TASK,
-                'value': 'child_support_grant'
+                'value': 'child_dependency_grant'
             },
         },
         {
@@ -316,42 +351,82 @@ menus['all_grants'] = {
             'friendly': 'Disability Grant',
             'dest': {
                 'type': DEST_TYPE_TASK,
-                'value': 'child_support_grant'
+                'value': 'disability_grant'
             },
         },
         {
             'friendly': 'Foster Child Grant',
             'dest': {
                 'type': DEST_TYPE_TASK,
-                'value': 'child_support_grant'
+                'value': 'foster_child_grant'
             },
         },
         {
             'friendly': 'Grant-in-aid',
             'dest': {
                 'type': DEST_TYPE_TASK,
-                'value': 'child_support_grant'
+                'value': 'grant_in_aid'
             },
         },
         {
             'friendly': 'Old Persons Grant',
             'dest': {
                 'type': DEST_TYPE_TASK,
-                'value': 'child_support_grant'
+                'value': 'old_persons_grant'
             },
         },
         {
             'friendly': 'Social Relief or Distress',
             'dest': {
                 'type': DEST_TYPE_TASK,
-                'value': 'child_support_grant'
+                'value': 'social_relief_grant'
             },
         },
         {
             'friendly': 'War Veterans Grant',
             'dest': {
                 'type': DEST_TYPE_TASK,
-                'value': 'child_support_grant'
+                'value': 'war_veterans_grant'
+            },
+        },
+    ]
+}
+
+menus['profile'] = {
+    'intro': "My Profile",
+    'options': [
+        {
+            'friendly': 'Get my Profile Details',
+            'dest': {
+                'type': DEST_TYPE_TASK,
+                'value': 'my_profile_details'
+            },
+        },
+        {
+            'friendly': 'Delete my Profile',
+            'dest': {
+                'type': DEST_TYPE_TASK,
+                'value': 'delete_my_profile'
+            },
+        },
+    ]
+}
+
+menus['bank_specific_programs'] = {
+    'intro': "Some banks have offered their own programs. Select the bank below to find out more about them:",
+    'options': [
+        {
+            'friendly': 'Standard Bank',
+            'dest': {
+                'type': DEST_TYPE_TASK,
+                'value': 'business_bank_standard_bank'
+            },
+        },
+        {
+            'friendly': 'Nedbank',
+            'dest': {
+                'type': DEST_TYPE_TASK,
+                'value': 'business_bank_nedbank'
             },
         },
     ]
