@@ -1,4 +1,5 @@
 import requests
+import os
 from flask import Flask, request, abort, app, jsonify, json
 from sqlalchemy.orm.exc import NoResultFound
 from twilio.rest import Client
@@ -18,7 +19,7 @@ db = SQLAlchemy(application)
 
 SETTINGS_ENABLE_SMS = True
 NEW_LINE = '\r\n'
-API_BASE_PATH = 'https://c640a319.ngrok.io'
+API_BASE_PATH = os.environ['EB_BASE_PATH']
 DEST_TYPE_MENU = "MENU"
 DEST_TYPE_TASK = "TASK"
 SUCCESSFUL_REGISTRATION_MSG = 'Thank for registering ✅\n' \
