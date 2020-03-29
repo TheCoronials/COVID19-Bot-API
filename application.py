@@ -26,7 +26,7 @@ NEW_LINE = '\r\n'
 API_BASE_PATH = os.environ['EB_BASE_PATH']
 DEST_TYPE_MENU = "MENU"
 DEST_TYPE_TASK = "TASK"
-SUCCESSFUL_REGISTRATION_MSG = 'Thank for registering ✅\n' \
+SUCCESSFUL_REGISTRATION_MSG = 'Thanks for registering ✅\n' \
                               'You can go back 🏃‍♂ to the main menu by replying with:\n' \
                               '"Back" 😁'
 
