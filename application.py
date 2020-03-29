@@ -405,8 +405,28 @@ menus['profile'] = {
         {
             'friendly': 'Delete my Profile',
             'dest': {
+                'type': DEST_TYPE_MENU,
+                'value': 'delete_profile_confirmation'
+            },
+        },
+    ]
+}
+
+menus['delete_profile_confirmation'] = {
+    'intro': "Are you sure that you want to delete your profile?",
+    'options': [
+        {
+            'friendly': 'Yes',
+            'dest': {
                 'type': DEST_TYPE_TASK,
                 'value': 'delete_my_profile'
+            },
+        },
+        {
+            'friendly': 'No',
+            'dest': {
+                'type': DEST_TYPE_MENU,
+                'value': 'profile'
             },
         },
     ]
