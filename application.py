@@ -213,6 +213,7 @@ def add_bank_details():
     return response, 201
 
 back_menu_store = {}
+# back_menu_stack = {}
 
 menus = {}
 
@@ -441,7 +442,10 @@ def get_dest_for_selection(menu, selection):
 
 
 def get_menu(menu, user_name):
-    response = "Heyyy {}, 🤖\n".format(user_name)
+    response = ""
+    print("MENU IS " + menu)
+    if menu != 'main':
+        response = "Heyyy {}, 🤖\n".format(user_name)
     response += menus[menu]['intro'] + "\n"
     for i, item in enumerate(menus[menu]['options'], start=1):
         response += "{}) {}\n".format(str(i), item['friendly'])
@@ -484,15 +488,18 @@ def greeting():
 
     response += "welcome to Digisist 🤖!"
 
-    return build_twilio_say(response)
+    return build_say_and_task_redirect(response, 'introduction')
 
 
 @application.route('/api/v1/menu/global-back', methods=['GET', 'POST'])
 def gp_back():
-    response = "Hmmm.. so you wanna go back? Still need to think about that.."
     payload = request.form
-    print("BACK STORE")
+    # print("BACK STACK")
+    # print(back_menu_stack)
+
+    print("MENU STORE")
     print(back_menu_store)
+
     try:
         back_menu = back_menu_store[payload['UserIdentifier']]
         return build_twilio_collect_from_menu(back_menu, [back_menu], request)
@@ -536,6 +543,7 @@ def callback_all():
     # TODO get name here AKA BOB
     if dest['type'] == DEST_TYPE_MENU:
         menu_stack.append(current_menu)
+        # back_menu_stack[payload['UserIdentifier']].append(current_menu)
         return build_twilio_collect_from_menu(dest['value'], menu_stack, request)
 
 
@@ -639,15 +647,6 @@ def build_twilio_task_redirect(task):
     return jsonify({
         "actions": [
             {
-                "remember": {
-                    "menu": {
-                        "stack": [
-                            "main"
-                        ]
-                    },
-                }
-            },
-            {
                 "redirect": "task://{}".format(task)
             }
         ]})
@@ -669,6 +668,18 @@ def build_twilio_task_redirect_with_remember_user(task, username):
 def build_twilio_say(say_text):
     return jsonify({"actions": [{"say": say_text}]})
 
+
+def build_say_and_task_redirect(say, task):
+    return jsonify({
+        "actions": [
+            {
+                "say": say
+            },
+            {
+                "redirect": "task://{}".format(task)
+            }
+        ]
+    })
 
 # print a nice greeting.
 def say_hello(username="World"):
