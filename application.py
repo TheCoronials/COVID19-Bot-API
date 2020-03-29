@@ -365,7 +365,7 @@ def get_dest_for_selection(menu, selection):
 
 
 def get_menu(menu, user_name):
-    response = "Heyyy {},\n".format(user_name)
+    response = "Heyyy {}, 🤖\n".format(user_name)
     response += menus[menu]['intro'] + "\n"
     for i, item in enumerate(menus[menu]['options'], start=1):
         response += "{}) {}\n".format(str(i), item['friendly'])
