@@ -222,24 +222,24 @@ menus = {}
 # -> To link to a task defined in twilio, use DEST_TYPE_TASK type and set value to task as defined in twilio
 
 menus['main'] = {
-    'intro': "I'm The Coronials bot for the COVID-19 Hackathon! Please select an option below. Are you:",
+    'intro': "Please select an option below. Are you:",
     'options': [
         {
-            'friendly': 'An individual',
+            'friendly': '👱 An individual',
             'dest': {
                 'type': DEST_TYPE_MENU,
                 'value': 'individual'
             },
         },
         {
-            'friendly': 'A business',
+            'friendly': '💼 A business',
             'dest': {
                 'type': DEST_TYPE_MENU,
                 'value': 'business'
             },
         },
         {
-            'friendly': 'Help',
+            'friendly': 'ℹ️ Get information',
             'dest': {
                 'type': DEST_TYPE_TASK,
                 'value': 'help'
@@ -249,79 +249,79 @@ menus['main'] = {
 }
 
 menus['business'] = {
-    'intro': "We have gathered all the business information that may be applicable to you. Please select the category that you would like to know more about:",
+    'intro': "We have gathered all the business information that may be applicable to you.",
     'options': [
         {
-            'friendly': 'Employee Tax Incentive',
+            'friendly': '👷‍♀️ Employee Tax Incentive',
             'dest': {
                 'type': DEST_TYPE_TASK,
                 'value': 'business_employee_tax_incentive'
             },
         },
         {
-            'friendly': 'Compensation Fund',
+            'friendly': '💵 Compensation Fund',
             'dest': {
                 'type': DEST_TYPE_TASK,
                 'value': 'business_compensation_fund'
             },
         },
         {
-            'friendly': 'Temporary Employee Relief Scheme',
+            'friendly': '👩🏼‍🏭 Temporary Employee Relief Scheme',
             'dest': {
                 'type': DEST_TYPE_TASK,
                 'value': 'business_temporary_employee_relief_scheme'
             },
         },
         {
-            'friendly': 'Business Loans',
-            'dest': {
-                'type': DEST_TYPE_TASK,
-                'value': 'business_temporary_employee_relief_scheme'
-            },
-        },
-        {
-            'friendly': 'Firms under R50 million turnover',
-            'dest': {
-                'type': DEST_TYPE_TASK,
-                'value': 'business_firms_under_r50_million_turnover'
-            },
-        },
-        {
-            'friendly': 'Tourism sector SMEs',
-            'dest': {
-                'type': DEST_TYPE_TASK,
-                'value': 'business_temporary_employee_relief_scheme'
-            },
-        },
-        {
-            'friendly': 'Bank specific programs',
-            'dest': {
-                'type': DEST_TYPE_TASK,
-                'value': 'bank_specific_programs'
-            },
-        },
-    ]
-}
-
-menus['individual'] = {
-    'intro': "This is the Individual Menu",
-    'options': [
-        {
-            'friendly': 'My Social Grants',
+            'friendly': '🏧 Business Loans',
             'dest': {
                 'type': DEST_TYPE_TASK,
                 'value': 'business_loans'
             },
         },
         {
-            'friendly': 'All Social Grants',
+            'friendly': '🏭 Firms under R50 million turnover',
+            'dest': {
+                'type': DEST_TYPE_TASK,
+                'value': 'business_firms_under_r50_million_turnover'
+            },
+        },
+        {
+            'friendly': '📸 Tourism sector SMEs',
+            'dest': {
+                'type': DEST_TYPE_TASK,
+                'value': 'business_tourism_sector_smes'
+            },
+        },
+        {
+            'friendly': '🏦 Bank specific programs',
+            'dest': {
+                'type': DEST_TYPE_TASK,
+                'value': 'business_bank_specific_programs'
+            },
+        },
+    ]
+}
+
+menus['individual'] = {
+    'intro': "Hello and welcome to 🤖 Digisist Individual.\nOver here you will be able to link your SASSA account with Digisist in order for you to receive and manage your grants digitally.",
+    'options': [
+        {
+            'friendly': '💁🏻 My Social Grants',
+            'dest': {
+                'type': DEST_TYPE_TASK,
+                'value': 'business_loans' #Todo need to be defined properly?
+            },
+        },
+        {
+            'friendly': '🏧 All Social Grants',
             'dest': {
                 'type': DEST_TYPE_MENU,
                 'value': 'all_grants'
             },
         },
         {
-            'friendly': 'My Profile',
+            'friendly': '👱 My Profile',
             'dest': {
                 'type': DEST_TYPE_MENU,
                 'value': 'profile'
@@ -331,24 +331,24 @@ menus['individual'] = {
 }
 
 menus['all_grants'] = {
-    'intro': "List of all Grants",
+    'intro': "Here are the list of all grants you could be able to apply.",
     'options': [
         {
-            'friendly': 'Child Dependency Grant',
+            'friendly': '👶 Child Dependency Grant',
             'dest': {
                 'type': DEST_TYPE_TASK,
                 'value': 'child_dependency_grant'
             },
         },
         {
-            'friendly': 'Child Support Grant',
+            'friendly': '🍼 Child Support Grant',
             'dest': {
                 'type': DEST_TYPE_TASK,
                 'value': 'child_support_grant'
             },
         },
         {
-            'friendly': 'Disability Grant',
+            'friendly': '♿ Disability Grant',
             'dest': {
                 'type': DEST_TYPE_TASK,
                 'value': 'disability_grant'
@@ -369,21 +369,21 @@ menus['all_grants'] = {
             },
         },
         {
-            'friendly': 'Old Persons Grant',
+            'friendly': '👴🏽 Old Persons Grant',
             'dest': {
                 'type': DEST_TYPE_TASK,
                 'value': 'old_persons_grant'
             },
         },
         {
-            'friendly': 'Social Relief or Distress',
+            'friendly': '🆘 Social Relief or Distress',
             'dest': {
                 'type': DEST_TYPE_TASK,
                 'value': 'social_relief_grant'
             },
         },
         {
-            'friendly': 'War Veterans Grant',
+            'friendly': '🎖️ War Veterans Grant',
             'dest': {
                 'type': DEST_TYPE_TASK,
                 'value': 'war_veterans_grant'
@@ -393,17 +393,17 @@ menus['all_grants'] = {
 }
 
 menus['profile'] = {
-    'intro': "My Profile",
+    'intro': "Manage your personal information. Select an option:",
     'options': [
         {
-            'friendly': 'Get my Profile Details',
+            'friendly': '👱 Get my Profile Details',
             'dest': {
                 'type': DEST_TYPE_TASK,
                 'value': 'my_profile_details'
             },
         },
         {
-            'friendly': 'Delete my Profile',
+            'friendly': '🗑️ Delete my Profile',
             'dest': {
                 'type': DEST_TYPE_MENU,
                 'value': 'delete_profile_confirmation'
@@ -460,7 +460,7 @@ def get_dest_for_selection(menu, selection):
 
 
 def get_menu(menu, user_name):
-    response = "Heyyy {},\n".format(user_name)
+    response = "Heyyy {}, 🤖\n".format(user_name)
     response += menus[menu]['intro'] + "\n"
     for i, item in enumerate(menus[menu]['options'], start=1):
         response += "{}) {}\n".format(str(i), item['friendly'])
@@ -501,6 +501,25 @@ def delete_user_profile():
     db.session.commit()
 
     return build_twilio_task_redirect('profile_delete')
+
+  
+@application.route('/api/v1/coronials/greeting', methods=['GET', 'POST'])
+def greeting():
+    payload = request.form
+    userId = payload['UserIdentifier']
+
+    response = "Heyyyyy"
+
+    try:
+        user = get_user_by_user_identifier(userId)
+        response += " {}, ".format(user.name)
+    except NoResultFound:
+        response += " and "
+        print("he who shall be nameless")
+
+    response += "welcome to Digisist 🤖!"
+
+    return build_twilio_say(response)
 
 
 @application.route('/api/v1/menu/global-back', methods=['GET', 'POST'])
