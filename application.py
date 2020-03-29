@@ -21,6 +21,9 @@ NEW_LINE = '\r\n'
 API_BASE_PATH = 'https://c640a319.ngrok.io'
 DEST_TYPE_MENU = "MENU"
 DEST_TYPE_TASK = "TASK"
+SUCCESSFUL_REGISTRATION_MSG = 'Thank for registering ✅\n' \
+                              'You can go back 🏃‍♂ to the main menu by replying with:\n' \
+                              '"Back" 😁'
 
 # Twilio Dinges make these environment vars
 account = "TwilioAccountID"
@@ -470,9 +473,9 @@ def get_menu(menu, user_name):
     response = menus[menu]['intro'].format(user_name) + "\n\n"
 
     for i, item in enumerate(menus[menu]['options'], start=1):
-        response += "{}) {}\n".format(str(i), item['friendly'])
+        response += "{}) {}\n\n".format(str(i), item['friendly'])
 
-    response += '\n99) Help\n' \
+    response += '99) Help\n' \
                 '0) Back\n'
 
     return response
@@ -572,7 +575,12 @@ def callback_all():
 
     current_menu = menu_store['current']
     print('CURRENT MENU -> ' + current_menu)
-    dest = get_dest_for_selection(current_menu, selection)
+    try:
+        dest = get_dest_for_selection(current_menu, selection)
+    except IndexError:
+        print("Eish, why these guys entering an index out of bounds?")
+        return build_twilio_collect_from_menu(current_menu, menu_stack, request)
+
     back_menu_store[payload['UserIdentifier']] = current_menu
 
     if dest['type'] == DEST_TYPE_TASK:
@@ -617,7 +625,7 @@ def create_user_twilio():
     db.session.commit()
 
     # response = "Hello {}, thanks for registering :D".format(name)
-    return build_twilio_task_redirect('greeting')
+    return build_twilio_say(SUCCESSFUL_REGISTRATION_MSG)
 
 
 def build_twilio_collect_from_menu(menu, stack, incoming_request):
@@ -763,7 +771,8 @@ def create_missing_identifier_response(field):
 def create_database():
     with application.app_context():
         db.create_all()
-        insert_seed_data(db)
+        # TODO somthing broken here rich
+        # insert_seed_data(db)
         db.session.commit()
 
 
