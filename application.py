@@ -525,8 +525,8 @@ def get_menu(menu, user_name):
         response += "{}) {}\n\n".format(str(i), item['friendly'])
 
     response += '911) 🆘 Help\n' \
-                '99)  🏠 Home\n' \
-                '0)   🔙 Back\n'
+                '99) 🏠 Home\n' \
+                '0) 🔙 Back\n'
 
     return response
 
