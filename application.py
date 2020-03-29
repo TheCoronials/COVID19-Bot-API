@@ -310,7 +310,7 @@ menus['individual'] = {
             'friendly': '💁🏻 My Social Grants',
             'dest': {
                 'type': DEST_TYPE_TASK,
-                'value': 'business_loans' #Todo need to be defined properly?
+                'value': 'profile_my_social_grant'
             },
         },
         {
@@ -393,7 +393,7 @@ menus['all_grants'] = {
 }
 
 menus['profile'] = {
-    'intro': "Manage your personal information. Select an option:",
+    'intro': "{}, you can manage your personal information here. Select an option:",
     'options': [
         {
             'friendly': '👱 Get my Profile Details',
@@ -413,17 +413,17 @@ menus['profile'] = {
 }
 
 menus['delete_profile_confirmation'] = {
-    'intro': "Are you sure that you want to delete your profile?",
+    'intro': "{}, Are you sure that you want to delete your profile?",
     'options': [
         {
-            'friendly': 'Yes',
+            'friendly': '👍 Yes',
             'dest': {
                 'type': DEST_TYPE_TASK,
                 'value': 'delete_my_profile'
             },
         },
         {
-            'friendly': 'No',
+            'friendly': '🙅‍♀️ No',
             'dest': {
                 'type': DEST_TYPE_MENU,
                 'value': 'profile'
@@ -460,8 +460,7 @@ def get_dest_for_selection(menu, selection):
 
 
 def get_menu(menu, user_name):
-    response = "Heyyy {}, 🤖\n".format(user_name)
-    response += menus[menu]['intro'] + "\n"
+    response = menus[menu]['intro'].format(user_name) + "\n\n"
     for i, item in enumerate(menus[menu]['options'], start=1):
         response += "{}) {}\n".format(str(i), item['friendly'])
 
