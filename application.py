@@ -270,6 +270,7 @@ menus['business'] = {
 
 
 def get_dest_for_selection(menu, selection):
+    #  check for index out of range.. return retry
     index = int(selection) - 1
     return menus[menu]['options'][index]['dest']
 
@@ -296,7 +297,7 @@ def get_init():
     try:
         user = get_user_by_user_identifier(userId)
         stack = [starting_menu]
-        return build_twilio_collect_from_menu(starting_menu, stack, None, user.name)
+        return build_twilio_collect_from_menu(starting_menu, stack, request)
     except NoResultFound:
         print('Not registered yet...')
         return build_twilio_task_redirect('register')
@@ -305,8 +306,6 @@ def get_init():
 @application.route('/api/v1/menu/global-back', methods=['GET', 'POST'])
 def gp_back():
     response = "Hmmm.. so you wanna go back? Still need to think about that.."
-
-    # TODO err missing remember payload on global back
 
     # payload = request.form
     # menu_store = json.loads(payload['Memory'])['menu']
@@ -322,26 +321,22 @@ def gp_back():
 def callback_all():
     payload = request.form
     menu_store = json.loads(payload['Memory'])['menu']
-
-    current_menu = menu_store['current']
     menu_stack = menu_store['stack']
-    # previous_menu = menu_store['stack'].pop()
 
-    print('CURRENT MENU -> ' + current_menu)
-
-    # use this for text later
     user_response = get_menu_response(request)
     selection = int(user_response)
 
     if selection == 0:
         previous_menu = menu_stack.pop()
         print('PREVIOUS MENU -> ' + previous_menu)
-        return build_twilio_collect_from_menu(previous_menu, menu_stack, request, None)
+        return build_twilio_collect_from_menu(previous_menu, menu_stack, request)
 
     if selection == 99:
         # TODO may need to make this a menu..
         return build_twilio_task_redirect('help')
 
+    current_menu = menu_store['current']
+    print('CURRENT MENU -> ' + current_menu)
     dest = get_dest_for_selection(current_menu, selection)
 
     if dest['type'] == DEST_TYPE_TASK:
@@ -350,7 +345,7 @@ def callback_all():
     # TODO get name here AKA BOB
     if dest['type'] == DEST_TYPE_MENU:
         menu_stack.append(current_menu)
-        return build_twilio_collect_from_menu(dest['value'], menu_stack, request, None)
+        return build_twilio_collect_from_menu(dest['value'], menu_stack, request)
 
 
 def get_menu_response(request):
@@ -388,8 +383,8 @@ def create_user_twilio():
     return build_twilio_task_redirect('greeting')
 
 
-def build_twilio_collect_from_menu(menu, stack, request, username):
-    display_name = username
+def build_twilio_collect_from_menu(menu, stack, incoming_request):
+    display_name = None
 
     remember_payload = {
         'menu': {
@@ -397,12 +392,21 @@ def build_twilio_collect_from_menu(menu, stack, request, username):
             "stack": stack
         }
     }
-    if username is not None:
-        remember_payload['username'] = username
-    else:
-        # username not here, get it from memory
-        payload = request.form
+
+    payload = incoming_request.form
+    try:
         display_name = json.loads(payload['Memory'])['username']
+    except KeyError:
+        print("Didn't find it in the resp - memory wiped :(")
+
+    if display_name is None:
+        try:
+            userId = payload['UserIdentifier']
+            user = get_user_by_user_identifier(userId)
+            display_name = user.name
+            remember_payload['username'] = display_name
+        except NoResultFound:
+            print('we got prpbs here')
 
     menu_response = get_menu(menu, display_name)
     redirect_path = get_full_api_path("/api/v1/menu/callback")
