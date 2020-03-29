@@ -440,7 +440,7 @@ def get_dest_for_selection(menu, selection):
 
 
 def get_menu(menu, user_name):
-    response = "Heyyy {},\n".format(user_name)
+    response = "Heyyy {}, 🤖\n".format(user_name)
     response += menus[menu]['intro'] + "\n"
     for i, item in enumerate(menus[menu]['options'], start=1):
         response += "{}) {}\n".format(str(i), item['friendly'])
@@ -465,6 +465,25 @@ def get_init():
     except NoResultFound:
         print('Not registered yet...')
         return build_twilio_task_redirect('register')
+
+
+@application.route('/api/v1/coronials/greeting', methods=['GET', 'POST'])
+def greeting():
+    payload = request.form
+    userId = payload['UserIdentifier']
+
+    response = "Heyyyyy"
+
+    try:
+        user = get_user_by_user_identifier(userId)
+        response += " {}, ".format(user.name)
+    except NoResultFound:
+        response += " and "
+        print("he who shall be nameless")
+
+    response += "welcome to Digisist 🤖!"
+
+    return build_twilio_say(response)
 
 
 @application.route('/api/v1/menu/global-back', methods=['GET', 'POST'])
