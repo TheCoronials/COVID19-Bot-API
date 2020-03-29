@@ -771,8 +771,7 @@ def create_missing_identifier_response(field):
 def create_database():
     with application.app_context():
         db.create_all()
-        # TODO somthing broken here rich
-        # insert_seed_data(db)
+        insert_seed_data(db)
         db.session.commit()
 
 
