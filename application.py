@@ -1,5 +1,9 @@
 import requests
 import os
+import datetime
+import time
+
+from flask import g, request
 from flask import Flask, request, abort, app, jsonify, json
 from sqlalchemy.orm.exc import NoResultFound
 from twilio.rest import Client
@@ -30,12 +34,56 @@ SUCCESSFUL_REGISTRATION_MSG = 'Thank for registering ✅\n' \
 account = "TwilioAccountID"
 token = "TwilioAccountToken"
 client = Client(account, token)
-
-
 # End Twilio Dinges
 
-# @Richard TODO User management
-# Put your stuff here
+
+# Add some fancy logging stuff
+@application.before_request
+def start_timer():
+    g.start = time.time()
+    application.logger.info('Headers: %s', request.headers)
+    application.logger.info('Body: %s', request.get_data())
+
+
+@application.after_request
+def log_request(response):
+    if request.path == '/favicon.ico':
+        return response
+    elif request.path.startswith('/static'):
+        return response
+
+    now = time.time()
+    duration = round(now - g.start, 2)
+    dt = datetime.datetime.fromtimestamp(now)
+    timestamp = dt
+
+    ip = request.headers.get('X-Forwarded-For', request.remote_addr)
+    host = request.host.split(':', 1)[0]
+    args = dict(request.args)
+
+    log_params = [
+        ('method', request.method, 'blue'),
+        ('path', request.path, 'blue'),
+        ('status', response.status_code, 'yellow'),
+        ('duration', duration, 'green'),
+        ('time', timestamp, 'magenta'),
+        ('ip', ip, 'red'),
+        ('host', host, 'red'),
+        ('params', args, 'blue')
+    ]
+
+    request_id = request.headers.get('X-Request-ID')
+    if request_id:
+        log_params.append(('request_id', request_id, 'yellow'))
+
+    parts = []
+    for name, value, color in log_params:
+        part = "{}={}".format(name, value)
+        parts.append(part)
+    line = " ".join(parts)
+
+    application.logger.info("Request overview: %s", line)
+    return response
 
 # User management
 @application.route('/api/v1/user/<string:user_identifier>', methods=['GET'])
@@ -551,6 +599,12 @@ def gp_back():
         return build_twilio_collect_from_menu(starting_menu, [starting_menu], request)
 
 
+@application.route('/api/v1/coronials/debug', methods=['GET', 'POST'])
+def get_image():
+    response = "Hello, sorry to (de)bug you :P."
+    return build_twilio_say(response)
+
+
 @application.route('/api/v1/menu/callback', methods=['GET', 'POST'])
 def callback_all():
     payload = request.form
@@ -782,4 +836,4 @@ if __name__ == "__main__":
     # removed before deploying a production app.
     application.debug = True
     create_database()
-    application.run(port=5001, debug=False)
+    application.run(port=5001, debug=True)
