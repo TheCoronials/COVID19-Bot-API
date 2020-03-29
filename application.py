@@ -388,10 +388,10 @@ menus['all_grants'] = {
     'intro': "Here are the list of all grants you could be able to apply.",
     'options': [
         {
-            'friendly': '👶 Child Dependency Grant',
+            'friendly': '😷 Care Dependency Grant',
             'dest': {
                 'type': DEST_TYPE_TASK,
-                'value': 'child_dependency_grant'
+                'value': 'care_dependency_grant'
             },
         },
         {
@@ -409,14 +409,14 @@ menus['all_grants'] = {
             },
         },
         {
-            'friendly': 'Foster Child Grant',
+            'friendly': '👶 Foster Child Grant',
             'dest': {
                 'type': DEST_TYPE_TASK,
                 'value': 'foster_child_grant'
             },
         },
         {
-            'friendly': 'Grant-in-aid',
+            'friendly': '🏥 Grant-in-aid',
             'dest': {
                 'type': DEST_TYPE_TASK,
                 'value': 'grant_in_aid'
