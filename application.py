@@ -310,7 +310,7 @@ menus['individual'] = {
             'friendly': '💁🏻 My Social Grants',
             'dest': {
                 'type': DEST_TYPE_TASK,
-                'value': 'business_loans' #Todo need to be defined properly?
+                'value': 'profile_my_social_grant'
             },
         },
         {
