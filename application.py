@@ -631,7 +631,7 @@ def callback_all():
 
     if selection == 99:
         # TODO may need to make this a menu..
-        return build_twilio_task_redirect('greeting')
+        return build_twilio_task_redirect('introduction')
 
     current_menu = menu_store['current']
     print('CURRENT MENU -> ' + current_menu)
