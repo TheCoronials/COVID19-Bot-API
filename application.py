@@ -524,8 +524,9 @@ def get_menu(menu, user_name):
     for i, item in enumerate(menus[menu]['options'], start=1):
         response += "{}) {}\n\n".format(str(i), item['friendly'])
 
-    response += '99) Help\n' \
-                '0) Back\n'
+    response += '911) 🆘 Help\n' \
+                '99)  🏠 Home\n' \
+                '0)   🔙 Back\n'
 
     return response
 
@@ -624,9 +625,13 @@ def callback_all():
             starting_menu = 'main'
             return build_twilio_collect_from_menu(starting_menu, [starting_menu], request)
 
-    if selection == 99:
+    if selection == 911:
         # TODO may need to make this a menu..
         return build_twilio_task_redirect('help')
+
+    if selection == 99:
+        # TODO may need to make this a menu..
+        return build_twilio_task_redirect('greeting')
 
     current_menu = menu_store['current']
     print('CURRENT MENU -> ' + current_menu)
