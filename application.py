@@ -21,6 +21,9 @@ NEW_LINE = '\r\n'
 API_BASE_PATH = 'https://c640a319.ngrok.io'
 DEST_TYPE_MENU = "MENU"
 DEST_TYPE_TASK = "TASK"
+SUCCESSFUL_REGISTRATION_MSG = 'Thank for registering ✅\n' \
+                              'You can go back 🏃‍♂ to the main menu by replying with:\n' \
+                              '"Back" 😁'
 
 # Twilio Dinges make these environment vars
 account = "TwilioAccountID"
@@ -212,6 +215,8 @@ def add_bank_details():
     })
     return response, 201
 
+back_menu_store = {}
+# back_menu_stack = {}
 
 menus = {}
 
@@ -460,11 +465,17 @@ def get_dest_for_selection(menu, selection):
 
 
 def get_menu(menu, user_name):
+    # response = ""
+    # print("MENU IS " + menu)
+    # if menu != 'main':
+    #     response = "Heyyy {}, 🤖\n".format(user_name)
+    # response += menus[menu]['intro'] + "\n"
     response = menus[menu]['intro'].format(user_name) + "\n\n"
-    for i, item in enumerate(menus[menu]['options'], start=1):
-        response += "{}) {}\n".format(str(i), item['friendly'])
 
-    response += '\n99) Help\n' \
+    for i, item in enumerate(menus[menu]['options'], start=1):
+        response += "{}) {}\n\n".format(str(i), item['friendly'])
+
+    response += '99) Help\n' \
                 '0) Back\n'
 
     return response
@@ -501,7 +512,7 @@ def delete_user_profile():
 
     return build_twilio_task_redirect('profile_delete')
 
-  
+
 @application.route('/api/v1/coronials/greeting', methods=['GET', 'POST'])
 def greeting():
     payload = request.form
@@ -518,21 +529,25 @@ def greeting():
 
     response += "welcome to Digisist 🤖!"
 
-    return build_twilio_say(response)
+    return build_say_and_task_redirect(response, 'introduction')
 
 
 @application.route('/api/v1/menu/global-back', methods=['GET', 'POST'])
 def gp_back():
-    response = "Hmmm.. so you wanna go back? Still need to think about that.."
+    payload = request.form
+    # print("BACK STACK")
+    # print(back_menu_stack)
 
-    # payload = request.form
-    # menu_store = json.loads(payload['Memory'])['menu']
-    # menu_stack = menu_store['stack']
-    # previous_menu = menu_stack.pop()
-    # print('GLOBAL BACK | PREVIOUS MENU -> ' + previous_menu)
-    # return build_twilio_collect_from_menu(previous_menu, menu_stack, request, None)
+    print("MENU STORE")
+    print(back_menu_store)
 
-    return build_twilio_say(response)
+    try:
+        back_menu = back_menu_store[payload['UserIdentifier']]
+        return build_twilio_collect_from_menu(back_menu, [back_menu], request)
+    except KeyError:
+        print('no back menu.. oh well')
+        starting_menu = 'main'
+        return build_twilio_collect_from_menu(starting_menu, [starting_menu], request)
 
 
 @application.route('/api/v1/menu/callback', methods=['GET', 'POST'])
@@ -545,9 +560,14 @@ def callback_all():
     selection = int(user_response)
 
     if selection == 0:
-        previous_menu = menu_stack.pop()
-        print('PREVIOUS MENU -> ' + previous_menu)
-        return build_twilio_collect_from_menu(previous_menu, menu_stack, request)
+        try:
+            previous_menu = menu_stack.pop()
+            print('PREVIOUS MENU -> ' + previous_menu)
+            return build_twilio_collect_from_menu(previous_menu, menu_stack, request)
+        except IndexError:
+            print('no back menu.. cause stack is popped.. oh well')
+            starting_menu = 'main'
+            return build_twilio_collect_from_menu(starting_menu, [starting_menu], request)
 
     if selection == 99:
         # TODO may need to make this a menu..
@@ -555,7 +575,13 @@ def callback_all():
 
     current_menu = menu_store['current']
     print('CURRENT MENU -> ' + current_menu)
-    dest = get_dest_for_selection(current_menu, selection)
+    try:
+        dest = get_dest_for_selection(current_menu, selection)
+    except IndexError:
+        print("Eish, why these guys entering an index out of bounds?")
+        return build_twilio_collect_from_menu(current_menu, menu_stack, request)
+
+    back_menu_store[payload['UserIdentifier']] = current_menu
 
     if dest['type'] == DEST_TYPE_TASK:
         return build_twilio_task_redirect(dest['value'])
@@ -563,6 +589,7 @@ def callback_all():
     # TODO get name here AKA BOB
     if dest['type'] == DEST_TYPE_MENU:
         menu_stack.append(current_menu)
+        # back_menu_stack[payload['UserIdentifier']].append(current_menu)
         return build_twilio_collect_from_menu(dest['value'], menu_stack, request)
 
 
@@ -598,7 +625,7 @@ def create_user_twilio():
     db.session.commit()
 
     # response = "Hello {}, thanks for registering :D".format(name)
-    return build_twilio_task_redirect('greeting')
+    return build_twilio_say(SUCCESSFUL_REGISTRATION_MSG)
 
 
 def build_twilio_collect_from_menu(menu, stack, incoming_request):
@@ -664,10 +691,11 @@ def build_twilio_api_redirect(path):
 
 def build_twilio_task_redirect(task):
     return jsonify({
-        "actions": [{
-            "redirect": "task://{}".format(task)
-        }]
-    })
+        "actions": [
+            {
+                "redirect": "task://{}".format(task)
+            }
+        ]})
 
 
 def build_twilio_task_redirect_with_remember_user(task, username):
@@ -686,6 +714,18 @@ def build_twilio_task_redirect_with_remember_user(task, username):
 def build_twilio_say(say_text):
     return jsonify({"actions": [{"say": say_text}]})
 
+
+def build_say_and_task_redirect(say, task):
+    return jsonify({
+        "actions": [
+            {
+                "say": say
+            },
+            {
+                "redirect": "task://{}".format(task)
+            }
+        ]
+    })
 
 # print a nice greeting.
 def say_hello(username="World"):
@@ -731,7 +771,8 @@ def create_missing_identifier_response(field):
 def create_database():
     with application.app_context():
         db.create_all()
-        insert_seed_data(db)
+        # TODO somthing broken here rich
+        # insert_seed_data(db)
         db.session.commit()
 
 
