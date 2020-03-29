@@ -595,7 +595,7 @@ def get_user_profile():
         })
         return response, 404
 		
-    response = "My Profile:\n ID: {id_num}\n Name: {name}".format(id_num = user.id_number, name = user.name)
+    response = "My Profile:\n ID: {id_num}\n Name: {name}\n 0) Back".format(id_num = user.id_number, name = user.name)
     return build_twilio_say(response)
 	
 	
