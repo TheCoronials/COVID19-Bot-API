@@ -312,7 +312,7 @@ menus['individual'] = {
             'friendly': '💁🏻 My Social Grants',
             'dest': {
                 'type': DEST_TYPE_TASK,
-                'value': 'business_loans' #Todo need to be defined properly?
+                'value': 'profile_my_social_grant'
             },
         },
         {
@@ -395,7 +395,7 @@ menus['all_grants'] = {
 }
 
 menus['profile'] = {
-    'intro': "Manage your personal information. Select an option:",
+    'intro': "{}, you can manage your personal information here. Select an option:",
     'options': [
         {
             'friendly': '👱 Get my Profile Details',
@@ -407,8 +407,28 @@ menus['profile'] = {
         {
             'friendly': '🗑️ Delete my Profile',
             'dest': {
+                'type': DEST_TYPE_MENU,
+                'value': 'delete_profile_confirmation'
+            },
+        },
+    ]
+}
+
+menus['delete_profile_confirmation'] = {
+    'intro': "{}, Are you sure that you want to delete your profile?",
+    'options': [
+        {
+            'friendly': '👍 Yes',
+            'dest': {
                 'type': DEST_TYPE_TASK,
                 'value': 'delete_my_profile'
+            },
+        },
+        {
+            'friendly': '🙅‍♀️ No',
+            'dest': {
+                'type': DEST_TYPE_MENU,
+                'value': 'profile'
             },
         },
     ]
@@ -442,11 +462,13 @@ def get_dest_for_selection(menu, selection):
 
 
 def get_menu(menu, user_name):
-    response = ""
-    print("MENU IS " + menu)
-    if menu != 'main':
-        response = "Heyyy {}, 🤖\n".format(user_name)
-    response += menus[menu]['intro'] + "\n"
+    # response = ""
+    # print("MENU IS " + menu)
+    # if menu != 'main':
+    #     response = "Heyyy {}, 🤖\n".format(user_name)
+    # response += menus[menu]['intro'] + "\n"
+    response = menus[menu]['intro'].format(user_name) + "\n\n"
+
     for i, item in enumerate(menus[menu]['options'], start=1):
         response += "{}) {}\n".format(str(i), item['friendly'])
 
@@ -470,6 +492,22 @@ def get_init():
     except NoResultFound:
         print('Not registered yet...')
         return build_twilio_task_redirect('register')
+
+
+@application.route('/api/v1/coronials/user/delete', methods=['POST'])
+def delete_user_profile():
+    payload = request.form
+    userId = payload['UserIdentifier']
+
+    try:
+        user = get_user_by_user_identifier(userId)
+        delete_user(user)
+    except NoResultFound:
+        return build_twilio_task_redirect('greeting')
+
+    db.session.commit()
+
+    return build_twilio_task_redirect('profile_delete')
 
 
 @application.route('/api/v1/coronials/greeting', methods=['GET', 'POST'])
@@ -709,6 +747,10 @@ application.add_url_rule('/<username>', 'hello', (lambda username:
 
 def get_user_by_user_identifier(user_identifier):
     return db.session.query(User).filter_by(user_identifier=user_identifier).one()
+
+
+def delete_user(user):
+    db.session.delete(user)
 
 
 def create_missing_identifier_response(field):

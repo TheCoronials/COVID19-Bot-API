@@ -2,7 +2,7 @@ import datetime
 from sqlalchemy import Column, ForeignKey, Integer, String, DateTime
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, backref
 
 Base = declarative_base()
 
@@ -15,7 +15,7 @@ class User(Base):
     user_identifier = Column(String(250), nullable=False)
     name = Column(String(250), nullable=True)
     id_number = Column(String(10), nullable=True)
-    bankaccounts = relationship("BankAccount")
+    bankaccounts = relationship('BankAccount', backref='user', cascade="all, delete-orphan")
     reg_date = Column(DateTime, default=datetime.datetime.utcnow)
 
     def serialize(self):
@@ -31,7 +31,7 @@ class BankAccount(Base):
     __tablename__ = 'bankacc'
 
     id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey('users.id'))
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False, index=True)
     bank = Column(String(50))
     accno = Column(String(15))
     branch = Column(String(6))
