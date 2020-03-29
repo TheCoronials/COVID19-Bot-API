@@ -4,7 +4,6 @@ from sqlalchemy.orm.exc import NoResultFound
 from twilio.rest import Client
 from flask_sqlalchemy import SQLAlchemy
 from repo.database_setup import User, BankAccount, Base
-import random
 
 # EB looks for an 'application' callable by default.
 from repo.populate import insert_seed_data
@@ -30,114 +29,6 @@ client = Client(account, token)
 
 
 # End Twilio Dinges
-
-
-@application.route('/api/v1/webhook/twilio', methods=['POST'])
-def twilio_hook():
-    # if not request.json or not 'title' in request.json:
-    #     abort(400)
-    # task = {
-    #     'id': tasks[-1]['id'] + 1,
-    #     'title': request.json['title'],
-    #     'description': request.json.get('description', ""),
-    #     'done': False
-    # }
-    # tasks.append(task)
-    payload = request.json
-    print(payload)
-    return jsonify({'payload': payload}), 201
-
-
-@application.route('/api/v1/deployer/images', methods=['GET'])
-def get_images():
-    images = 'Available Images:' + NEW_LINE
-    for i in get_images_payload():
-        images += i + NEW_LINE
-
-    return build_twilio_say(images)
-
-
-@application.route('/api/v1/info/daily-users', methods=['GET'])
-def get_daily_users():
-    android = get_random_number(1000, 100000)
-    ios = get_random_number(1000, 100000)
-    web = get_random_number(1000, 100000)
-    response = "Daily Login Info:\n\nMobile:\nAndroid: " + android + "\niOS: " + ios + "\n\nWeb: " + web
-
-    return build_twilio_say(response)
-
-
-@application.route('/api/v1/info/support', methods=['GET'])
-def get_support():
-    response = "Support:\n\n" \
-               "Mobile:\n" \
-               "BA: Nik Nik\n" \
-               "Developer: Rossi\n\n" \
-               "Website:\n" \
-               "BA: Nik Naik\n" \
-               "Developer: Wald"
-
-    return build_twilio_say(response)
-
-
-@application.route('/api/v1/info/abilities', methods=['GET'])
-def get_abilities():
-    response = "Try the following commands: \r\nGet deployment images, \r\nGet deployment labels, \r\nInstant Deployments, " \
-               "\r\nScheduled Deployments, \r\nPending approvals, \r\nSupport Roster, \r\nDaily Users, " \
-               "\r\nMonthly Users, \r\nHow many login's succeeded today, \r\nFailure rate, \r\nScreen views. " \
-               "\r\n\r\nTry this in Google assistant, WhatsApp or Slack."
-
-    return build_twilio_say(response)
-
-
-@application.route('/api/v1/info/login-failures', methods=['GET'])
-def get_login_failures():
-    app = get_random_decimal(90, 100, 2)
-    web = get_random_decimal(90, 100, 2)
-    response = "App login success: " + app + "% \r\nWeb login success: " + web + "%"
-
-    return build_twilio_say(response)
-
-
-@application.route('/api/v1/info/image-failures', methods=['GET', 'POST'])
-def get_image_failures():
-    payload = request.form
-    memory = json.loads(payload['Memory'])
-    answers = memory['twilio']['collected_data']['collect_images']['answers']
-    image = answers['image_failure_rates']['answer']
-    failure_rate = get_random_decimal(0, 10, 2)
-    response = "There is a " + failure_rate + "% failure rate on {}".format(image)
-
-    return build_twilio_say(response)
-
-
-@application.route('/api/v1/info/most-used', methods=['GET'])
-def get_most_used():
-    vitality_landing = get_random_number(100000, 1000000)
-    index = get_random_number(100000, 1000000)
-    response = "Mobile: landing_page " + vitality_landing + " views \r\nWeb: /index.html " + index + " views"
-
-    return build_twilio_say(response)
-
-
-@application.route('/api/v1/info/monthly-users', methods=['GET'])
-def get_monthly_users():
-    android = get_random_number(1000, 100000)
-    ios = get_random_number(1000, 100000)
-    web = get_random_number(1000, 100000)
-    response = "Monthly Login Info:\n\nMobile:\nAndroid: " + android + "\niOS: " + ios + "\n\nWeb: " + web
-
-    return build_twilio_say(response)
-
-
-@application.route('/api/v1/whatsapp/deployer/images', methods=['GET'])
-def get_wa_images():
-    images = 'Available Images:' + NEW_LINE
-    for i in get_images_payload():
-        images += i + NEW_LINE
-
-    return build_twilio_say(images)
-
 
 # @Richard TODO User management
 # Put your stuff here
@@ -329,7 +220,6 @@ menus = {}
 # -> To add a new menu, create menus['menu-name'] = {} use menus['main'] or menus['business'] as example
 # -> To link to a menu use DEST_TYPE_MENU type and set value to menu as defined here. EG menus['business']
 # -> To link to a task defined in twilio, use DEST_TYPE_TASK type and set value to task as defined in twilio
-# -> remember to create call-back function..
 
 menus['main'] = {
     'intro': "I'm TheCoronials bot for COVID-19 Hackathon!",
@@ -369,10 +259,10 @@ menus['business'] = {
             },
         },
         {
-            'friendly': 'Global Back',
+            'friendly': 'Donation school feeding program',
             'dest': {
                 'type': DEST_TYPE_TASK,
-                'value': 'global_back'
+                'value': 'donation_school_feeding_program'
             },
         },
     ]
@@ -468,16 +358,6 @@ menus['all_grants'] = {
 }
 
 
-def determine_menu_redirect(menu, selection):
-    dest = get_dest_for_selection(menu, selection)
-    if dest['type'] == DEST_TYPE_TASK:
-        return build_twilio_task_redirect(dest['value'])
-
-# TODO get name here
-    if dest['type'] == DEST_TYPE_MENU:
-        return build_twilio_collect_from_menu(dest['value'], 'BOB')
-
-
 def get_dest_for_selection(menu, selection):
     index = int(selection) - 1
     return menus[menu]['options'][index]['dest']
@@ -489,7 +369,8 @@ def get_menu(menu, user_name):
     for i, item in enumerate(menus[menu]['options'], start=1):
         response += "{}) {}\n".format(str(i), item['friendly'])
 
-    response += '\n\n'
+    response += '\n99) Help\n' \
+                '0) Back\n'
 
     return response
 
@@ -499,30 +380,66 @@ def get_init():
     payload = request.form
     userId = payload['UserIdentifier']
     print('user init ' + userId)
-    # print('PROFILE? ' + menus['main']['options'][1])
+    starting_menu = 'main'
 
     try:
         user = get_user_by_user_identifier(userId)
-        return build_twilio_collect_from_menu('main', user.name)
+        stack = [starting_menu]
+        return build_twilio_collect_from_menu(starting_menu, stack, None, user.name)
     except NoResultFound:
         print('Not registered yet...')
         return build_twilio_task_redirect('register')
 
 
-@application.route('/api/v1/menu/main-callback', methods=['GET', 'POST'])
-def callback_main():
-    # TODO may break if they don't put 1 as answer.. handle..
-    selection = int(get_menu_response(request))
-    response = determine_menu_redirect('main', selection)
-    return response
+@application.route('/api/v1/menu/global-back', methods=['GET', 'POST'])
+def gp_back():
+    response = "Hmmm.. so you wanna go back? Still need to think about that.."
+
+    # TODO err missing remember payload on global back
+
+    # payload = request.form
+    # menu_store = json.loads(payload['Memory'])['menu']
+    # menu_stack = menu_store['stack']
+    # previous_menu = menu_stack.pop()
+    # print('GLOBAL BACK | PREVIOUS MENU -> ' + previous_menu)
+    # return build_twilio_collect_from_menu(previous_menu, menu_stack, request, None)
+
+    return build_twilio_say(response)
 
 
-@application.route('/api/v1/menu/business-callback', methods=['GET', 'POST'])
-def callback_business():
-    # TODO may break if they don't put 1 as answer.. handle..
-    selection = int(get_menu_response(request))
-    response = determine_menu_redirect('business', selection)
-    return response
+@application.route('/api/v1/menu/callback', methods=['GET', 'POST'])
+def callback_all():
+    payload = request.form
+    menu_store = json.loads(payload['Memory'])['menu']
+
+    current_menu = menu_store['current']
+    menu_stack = menu_store['stack']
+    # previous_menu = menu_store['stack'].pop()
+
+    print('CURRENT MENU -> ' + current_menu)
+
+    # use this for text later
+    user_response = get_menu_response(request)
+    selection = int(user_response)
+
+    if selection == 0:
+        previous_menu = menu_stack.pop()
+        print('PREVIOUS MENU -> ' + previous_menu)
+        return build_twilio_collect_from_menu(previous_menu, menu_stack, request, None)
+
+    if selection == 99:
+        # TODO may need to make this a menu..
+        return build_twilio_task_redirect('help')
+
+    dest = get_dest_for_selection(current_menu, selection)
+
+    if dest['type'] == DEST_TYPE_TASK:
+        return build_twilio_task_redirect(dest['value'])
+
+    # TODO get name here AKA BOB
+    if dest['type'] == DEST_TYPE_MENU:
+        menu_stack.append(current_menu)
+        return build_twilio_collect_from_menu(dest['value'], menu_stack, request, None)
 
 
 def get_menu_response(request):
@@ -560,97 +477,24 @@ def create_user_twilio():
     return build_twilio_task_redirect('greeting')
 
 
-@application.route('/api/v1/coronials/hello', methods=['GET', 'POST'])
-def get_hello():
-    question = "Hello, this is the backend on AWS saying WORLD"
-    callback = "sdome url goes here WORLD"
-    return build_twilio_collect(question, callback)
+def build_twilio_collect_from_menu(menu, stack, request, username):
+    display_name = username
 
-
-@application.route('/api/v1/coronials/image', methods=['GET', 'POST'])
-def get_image():
-    response = "Hello, I think you just sent me an image.."
-    return build_twilio_say(response)
-
-
-@application.route('/api/v1/coronials/age', methods=['GET', 'POST'])
-def get_age():
-    print('methods')
-    form = request.form
-    age = int(form['Field_user_age_Value'])
-    age += age
-
-    response = "Double your age is {}".format(age)
-
-    return build_twilio_say(response)
-
-
-@application.route('/api/v1/deployer/labels', methods=['GET', 'POST'])
-def get_labels():
-    field = 'CurrentInput'
-    if field in request.form:
-        images = 'The following labels are available for "' + request.form[field] + '"' + NEW_LINE
+    remember_payload = {
+        'menu': {
+            "current": menu,
+            "stack": stack
+        }
+    }
+    if username is not None:
+        remember_payload['username'] = username
     else:
-        images = 'Available labels ' + NEW_LINE
+        # username not here, get it from memory
+        payload = request.form
+        display_name = json.loads(payload['Memory'])['username']
 
-    for i in get_labels_payload():
-        images += i + NEW_LINE
-
-    return build_twilio_say(images)
-
-
-@application.route('/api/v1/deployer/deploy', methods=['GET', 'POST'])
-def do_deploy():
-    payload = request.form
-    memory = json.loads(payload['Memory'])
-    answers = memory['twilio']['collected_data']['deploy_questions']['answers']
-    deployment_image = answers['deployment_images']['answer']
-    deployment_label = answers['deployment_labels']['answer']
-
-    result = "Deploying '{}' on '{}'".format(deployment_label, deployment_image)
-    print(result)
-
-    return build_twilio_say(result)
-
-
-@application.route('/api/v1/deployer/deploy-schedule', methods=['GET', 'POST'])
-def do_deploy_schedule():
-    payload = request.form
-    memory = json.loads(payload['Memory'])
-    answers = memory['twilio']['collected_data']['deploy_questions']['answers']
-    deployment_image = answers['deployment_images']['answer']
-    deployment_label = answers['deployment_labels']['answer']
-    deployment_time = answers['deployment_time']['answer']
-
-    result = "Deploying '{}' on '{}' @ {}".format(deployment_label, deployment_image, deployment_time)
-
-    if deployment_time not in ['09:00',
-                               '09h00',
-                               '9am',
-                               '12:00',
-                               '12h00',
-                               '12pm',
-                               '16:00',
-                               '16h00',
-                               '4pm']:
-        result = "Please deploy during the allotted time slots!\n\n" \
-                 "09h00 until 09h30\n" \
-                 "12h00 until 12h30\n" \
-                 "16h00 until 16h30"
-
-    return build_twilio_say(result)
-
-
-def send_sms(body):
-    if SETTINGS_ENABLE_SMS:
-        sms = client.messages.create(to="<to-nohere>", from_="<from-nohere>", body=body)
-    else:
-        print(">>>>SMS<<<<\n{}\n>>>>>SMS<<<<<<".format(body))
-
-
-def build_twilio_collect_from_menu(menu, user_name):
-    menu_response = get_menu(menu, user_name)
-    redirect_path = get_full_api_path("/api/v1/menu/{}-callback".format(menu))
+    menu_response = get_menu(menu, display_name)
+    redirect_path = get_full_api_path("/api/v1/menu/callback")
 
     return jsonify({
         "actions": [
@@ -668,31 +512,13 @@ def build_twilio_collect_from_menu(menu, user_name):
                         "redirect": redirect_path
                     }
                 }
-            }
-        ]
-    })
-
-
-def build_twilio_collect(question, path):
-    return jsonify({
-        "actions": [
+            },
             {
-                "collect": {
-                    "name": "collect_menu_selection",
-                    "questions": [
-                        {
-                            "question": question,
-                            "name": "menu_selection",
-                            "type": "Twilio.NUMBER"
-                        }
-                    ],
-                    "on_complete": {
-                        "redirect": get_full_api_path(path)
-                    }
-                }
-            }
+                "remember": remember_payload
+            },
         ]
     })
+
 
 
 def get_full_api_path(path):
@@ -704,42 +530,28 @@ def build_twilio_api_redirect(path):
 
 
 def build_twilio_task_redirect(task):
-    return jsonify({"actions": [{"redirect": "task://{}".format(task)}]})
+    return jsonify({
+        "actions": [{
+            "redirect": "task://{}".format(task)
+        }]
+    })
+
+
+def build_twilio_task_redirect_with_remember_user(task, username):
+    return jsonify({
+        "actions": [{
+            "redirect": "task://{}".format(task)
+        },
+        {
+            "remember": {
+                "username": username
+            }
+        }]
+    })
 
 
 def build_twilio_say(say_text):
     return jsonify({"actions": [{"say": say_text}]})
-
-
-def get_images_payload():
-    payload = [
-        'image1',
-        'image2',
-        'image3',
-    ]
-    return payload
-
-
-def get_labels_payload():
-    payload = [
-        'label1',
-        'label2',
-        'label3',
-    ]
-    return payload
-
-
-def get_random_number(min, max):
-    return str(random.randint(min, max))
-
-
-def get_random_decimal(min, max, decimals):
-    return str(round(random.uniform(min, max), decimals))
-
-
-@application.route('/api/v1/test', methods=['GET'])
-def get_test():
-    return jsonify({'tasks': 'pew'})
 
 
 # print a nice greeting.
