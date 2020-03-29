@@ -302,8 +302,8 @@ menus['business'] = {
         {
             'friendly': '🏦 Bank specific programs',
             'dest': {
-                'type': DEST_TYPE_TASK,
-                'value': 'business_bank_specific_programs'
+                'type': DEST_TYPE_MENU,
+                'value': 'bank_specific_programs'
             },
         },
     ]
